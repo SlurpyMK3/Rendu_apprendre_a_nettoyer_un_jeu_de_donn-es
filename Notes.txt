@@ -1,0 +1,144 @@
+#558 837 lignes et 16 colonne
+
+['year', 'make', 'model', 'trim', 'body', 'transmission', 'vin', 'state', 'condition', 'odometer', 'color', 'interior', 'seller', 'mmr','sellingprice', 'saledate'],
+
+16 columns: in EN
+year(int64)  : 2015 
+make(object)  : Kia	
+model(object) : Sorento
+trim(object)  :	LX
+body(object)  : SUV
+transmission(object) : automatic
+vin(object)   : 5xyktca69fg566472
+state(object) : ca	
+condition(float64) : 5.0	
+odometer(float64) : 16639.0
+color(object) : white	
+interior(object) : black	
+seller(object) : kia motors america inc	
+mmr(float64) : 20500.0	
+sellingpricefloat(64) : 21500.0	
+saledate(object) : Tue Dec 16 2014 12:30:00 GMT-0800 (PST)
+
+
+16 colonnes: En FR
+l'année, *
+la marque, *
+le modèle, *
+la garniture, 
+le Type de carrosserie, 
+le type de transmission, 
+le VIN (Vehicle Identification Number), 
+l'état d'enregistrement, 
+la cote de condition, 
+la lecture du compteur kilométrique,
+les couleurs extérieures et intérieures, 
+les informations sur le vendeur,
+les valeurs Manheim Market Report (MMR),
+les prix de vente,
+dates de vente.
+
+--
+Critère utile :
+13 colonnes : Suppression: vin ; state ; seller
+
+year : Année
+make : Marque
+model : Modèle
+trim : Version
+body : Type de carrosserie 
+transmission : Transmission
+conditon : Etat
+odometer : Kilométrage
+color : Couleur
+interior : Intérieur
+mmr : Côte du véhicule
+sellingprice : Prix de vente
+
+
+
+--
+///Supprimer les colonnes non utiles :///
+vin ; state ; seller 
+df_car.drop(['vin','state','seller'], axis=1, inplace= True)
+--
+
+--
+///Renommer les colonnes en français pour plus de clarté///
+
+df_car.rename(columns={
+    'year': 'Année',
+    'make': 'Marque',
+    'model': 'Modèle',
+    'trim' : 'Version',
+    'body': 'Type de carrosserie',
+    'transmission': 'Transmission',
+    'condition': 'État',
+    'odometer': 'Kilométrage',
+    'color': 'Couleur',
+    'interior': 'Intérieur',
+    'mmr': 'Valeur marchande',
+    'sellingprice': 'Prix de vente'?
+    'saledate':'Date de vente'
+})
+--
+
+///Les dates sont toutes erronées : l’administrateur vous signale qu’elles sont toutes décalées de 8 années (les dates de ventes comme les dates d’ancienneté de la voiture)
+&
+Formater la date de vente : vous n’avez pas réellement besoin de savoir autant de détails, la date de vente est suffisante, l’horaire n’est pas nécessaire. /// 
+
+///Ajouté +8 Années : ///
+df_car['Année'] = df_car['Année'] + 8
+--
+
+--
+///Dates d’ancienneté de la voiture:///
+
+from datetime import datetime
+def transform_date(date_str):
+    if isinstance(date_str, str):
+        date_parts = ' '.join(pd.Series(date_str.split()).drop([0, 4, 5, 6], errors='ignore').tolist())
+    
+        try:
+            date_object = datetime.strptime(date_parts, '%b %d %Y')
+            return date_object.replace(year=date_object.year + 8).strftime('%d-%m-%y')
+        except ValueError:
+            return None
+
+
+df_car['Date de vente'] = df_car['Date de vente'].apply(transform_date)
+--
+
+
+///Isoler les lignes dans lesquelles il y a des données manquantes et les exporter dans un CSV à part, pour une analyse ultérieure ./// 
+
+
+index_with_nan = df_car.index[df_car.isnull().any(axis=1)]
+df_nan = df_car[df_car.isna().any(axis=1)].copy()
+
+df_nan.to_csv('car_prices_nan.csv', index=False)
+df_car.dropna(inplace=True)
+
+
+
+Couleur : 
+white
+gray
+black
+red
+silver
+brown
+beige
+blue
+purple
+burgundy
+-
+gold
+yellow
+green
+charcoal
+orange
+off-white
+turquoise
+pink
+lime
